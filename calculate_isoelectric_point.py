@@ -1,10 +1,12 @@
 '''
-This will calculate pIs from amino acid fasta files. 
+@author: Tyler Weirick 
+@date: 2013-6-26
+This accepts a fasta file or set of fasta files passes by a regex. 
+It will print the name of each fasta followed by the theoretical pI. 
 '''
 from sys import hexversion
 from glob import glob
 py_version = hex(hexversion)
-
 
 desc=open(__file__).read().split("'''")[1]
 if py_version > "0x30200f0":
@@ -141,20 +143,27 @@ def peptideisoelectripoint(prot_sequence):
 
     return pH
 
+#=============================================================================
+#                     Main Program 
+#=============================================================================
+
 file_list = getargs(ver='%prog 0.0')
 
+#Itterat over files incase of regex. 
 for file_name in file_list: 
     fasta_file = open(file_name,'r')
     fasta_list = []
     while True: 
         line = fasta_file.readline()
-    
+        
         if line == "" or line[0] == ">":
+         
             if fasta_list != []:        
                 print( str(peptideisoelectripoint( "".join(fasta_list))) )
             if line == "":
                 break
             else:
+                #The name should be output first. 
                 print( line.strip()+"\t" ,end="")
             fasta_list = []
         else:    
