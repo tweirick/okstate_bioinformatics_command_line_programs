@@ -1,0 +1,9 @@
+This folder contains a collection of command line programs for calculating 
+various statistics and manipulating tab delimited columns in tsv files. 
+They were originally created for processing and calculating significance of 
+protein expression data generated through mass spectrometry. However, they 
+were written generally so they could be applicable to other scenarios in 
+which large amounts of statistics need to be calculated. 
+
+To run these you will need python 2.7+ or python 3.2+, the rpy2 library, 
+and the qvalue library from bioconductor (for Storey FDR only). 
