@@ -1,0 +1,140 @@
+10
+
+dir
+0
+svn://bioinfo.okstate.edu/feature_generator/PROPY_MODULES
+svn://bioinfo.okstate.edu/feature_generator
+add
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+724a93f3-0fd6-4ab6-86fc-6d53eab82287
+
+__init__.py
+file
+
+
+
+add
+
+__pycache__
+dir
+
+
+
+add
+
+GetSubSeq.py
+file
+
+
+
+add
+
+PseudoAAC.py
+file
+
+
+
+add
+
+aa_percent_cnt.py
+file
+
+
+
+add
+
+
+
+
+
+has-props
+has-prop-mods
+
+AAComposition.py
+file
+
+
+
+add
+
+AAComposition1.py
+file
+
+
+
+add
+
+dipeptide.py
+file
+
+
+
+add
+
+
+
+
+
+has-props
+has-prop-mods
+
+QuasiSequenceOrder.py
+file
+
+
+
+add
+
+PyPro.py
+file
+
+
+
+add
+
+AAIndex.py
+file
+
+
+
+add
+
+Autocorrelation.py
+file
+
+
+
+add
+
+CTD.py
+file
+
+
+
+add
+
+ProCheck.py
+file
+
+
+
+add
+
