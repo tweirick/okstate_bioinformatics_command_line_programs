@@ -11,7 +11,6 @@ from sys       import hexversion
 from itertools import izip, chain, repeat
 from glob      import glob
 import operator
-from time import time
 #SVM light library downloaded from.
 #https://bitbucket.org/wcauchois/pysvmlight
 import svmlight
@@ -217,11 +216,8 @@ def maketrainingandtestingsets(class_vecs_dict,run_params_dict,fold_level):
             tmp_training_vecs = class_vecs_dict[vec_class][:start]+class_vecs_dict[vec_class][stop:]
             tmp_test_vecs     = class_vecs_dict[vec_class][start:stop]
 
-        print(vec_class,len(tmp_training_vecs))
-        print(vec_class,len(tmp_test_vecs))
         training_vecs_dict.update({vec_class:tmp_training_vecs})
         testing_vecs_dict.update( {vec_class:tmp_test_vecs})
-
         
     """
     Now there are two dicts on containing all sequences to be used in 
@@ -259,8 +255,6 @@ def maketrainingandtestingsets(class_vecs_dict,run_params_dict,fold_level):
 
 def oneagainstrestkfoldtest(dict_of_class_lists,run_params_dict):
     
-    print(run_params_dict)
-
     svm_kernal="rbf"
     overall_result_dict = {"FP":0,"FN":0,"TN":0,"TP":0}
     n = len(dict_of_class_lists)
@@ -276,20 +270,16 @@ def oneagainstrestkfoldtest(dict_of_class_lists,run_params_dict):
     for fold_level in range(0,n_folds):
         #Make training and testing data as lists.
         result_dict = {"FP":0,"FN":0,"TN":0,"TP":0}
-         
-        print(time(),fold_level)
 
         fold_confusion_matrix = {
             y:{x:0 for x in dict_of_class_lists} for y in dict_of_class_lists
         }
-
         #Make fold models
         models_dict,test_data_dict = maketrainingandtestingsets(
             dict_of_class_lists,
             run_params_dict,
             fold_level
         )
-
 
 
         for class_of_vecs_being_tested_1 in test_data_dict:
@@ -304,11 +294,9 @@ def oneagainstrestkfoldtest(dict_of_class_lists,run_params_dict):
                                 models_dict[model_name],
                                 [(0,single_test_vec)],
                         )
-
-                        pred_values_dict.update({model_name:pred[0]})
-                    
+                        pred_values_dict.update({model_name:pred[0]})    
                     pred_values_list.append(
-                        [class_of_vecs_being_tested,pred_values_dict]) 
+                        [class_of_vecs_being_tested,pred_values_dict])      
                         #pred_values_list.append( [model_name,class_of_vecs_being_tested_1,pred_values_dict] )
 
                         #print(pred_values_list)
@@ -411,7 +399,7 @@ def oneagainstrestkfoldtest(dict_of_class_lists,run_params_dict):
         class_perf_out_list.append(pref_str)
 
     #print("-----------------------------------")
-    #Overall Stats
+        #Overall Stats
     overall_perf = PerformanceCalculation(
         FN=overall_result_dict["FN"],
         FP=overall_result_dict["FP"],
@@ -503,16 +491,10 @@ pos_ex_cnt = 0
 neg_ex_cnt = 0
 best_vals = None
 best_mcc  = None
-c_start,c_end,c_parts = 1,30,1
-j_start,j_end,j_parts = 1,15,1
-g_start,g_end,g_parts = 1,500,10
+c_start,c_end,c_parts = 1,500,25
+j_start,j_end,j_parts = 1,500,25
+g_start,g_end,g_parts = 1,500,25
 svm_kernal = "rbf"
-
-
-c_start = 8
-j_start = 5
-g_start = 135
-
 
 """
 First make a dictionary with class names as keys and the vector elements 
@@ -527,34 +509,59 @@ best_average_mcc = None
 best_class_str   = ""
 
 for c_val in range(c_start,c_end,c_parts):
-    for c_ratio_val in range(j_start,j_end,j_parts):#j
-        for gamma_val in range(g_start,g_end,g_parts):
+    for gamma_val in range(j_start,j_end,j_parts):
+        for c_ratio_val in range(g_start,g_end,g_parts):
 
             run_params_dict = {
-                "c"         : float(c_val),
-                "gamma"     : float(gamma_val),
-                "c_ratio"   : float(c_ratio_val),
+                "c"         : c_val,
+                "gamma"     : gamma_val,
+                "c_ratio"   : c_ratio_val,
                 "max_folds" : n_folds
             }
             overall_perf_dict,class_perf_str = oneagainstrestkfoldtest(dict_of_class_lists,run_params_dict)
 
-            if(best_average_mcc == None or best_average_mcc < overall_perf_dict["mcc"]):
-                #Calculate performaces averages mean and varience,etc, of performance statistics
-                best_average_mcc = overall_perf_dict["mcc"]
+            #average_perf_dict = shuffledaveragedkfoldtest(
+            #    dict_of_class_lists,
+            #    run_params_dict,
+            #    x_shuffles
+            #)
 
-                best_class_str=(
-                    "kernal: "+str(svm_kernal)+"\t"+
-                    "c: "+str(c_val)+"\t"+
-                    "gamma: "+str(gamma_val)+"\t"+
-                    "costratio: "+str(c_ratio_val)+"\t"
-                )
+        if(best_average_mcc == None or best_average_mcc < overall_perf_dict["mcc"]):
+            #Calculate performaces averages mean and varience,etc, of performance statistics
+            best_average_mcc = overall_perf_dict["mcc"]
 
-                for e in sorted( overall_perf_dict.keys() ):
-                     best_class_str =  best_class_str+ e+": "+str(overall_perf_dict[e])+"\t"
+            best_class_str=(
+                "kernal: "+str(svm_kernal)+"\t"+
+                "c: "+str(c_val)+"\t"+
+                "gamma: "+str(gamma_val)+"\t"+
+                "costratio: "+str(c_ratio_val)+"\t"
+            )
 
-                print("============================================")
-                print("best_overall:\t"+best_class_str)
-                print("By Class:")
-                print(class_perf_str)            
+            for e in sorted( overall_perf_dict.keys() ):
+                 best_class_str =  best_class_str+ e+": "+str(overall_perf_dict[e])+"\t"
 
-            exit()
+            print("============================================")
+            print("best_overall:\t"+best_class_str)
+            print("By Class:")
+            print(class_perf_str)            
+
+"""
+if pred_values_dict[class_of_max_pred] >= 0:
+    if class_of_vecs_being_tested == class_of_max_pred:
+        #print(class_of_vecs_being_tested,pred_values_dict)
+        #and preds_dict[class_of_max_pred] != preds_dict[second_max_val]):
+        result_dict["TP"]+=1
+        overall_result_dict["TP"]+=1
+    else:#class_of_vecs_being_tested != class_of_max_pred:
+        result_dict["FP"]+=1
+        overall_result_dict["FP"]+=1
+    overall_confusion_matrix[class_of_max_pred][class_of_vecs_being_tested]+=1
+    fold_confusion_matrix[class_of_max_pred][class_of_vecs_being_tested]+=1
+else:
+    if class_of_vecs_being_tested == class_of_max_pred:
+        result_dict["FN"]+=1
+        overall_result_dict["FN"]+=1
+    else:
+        result_dict["TN"]+=1
+        overall_result_dict["TN"]+=1      
+"""                     

@@ -11,7 +11,6 @@ python3 /home/TWeirick/PY_PROGRAMS/PYSVM/multiclass_five_fold_test_classes.py --
 
 '''
 import argparse
-import svmlight
 from sys import exit     #from sys import exit from sys import exit
 from glob import glob    #from glob import glob
 import os                #import os
@@ -330,7 +329,7 @@ def dofoldclassification(c_cond,j_cond,g_cond,training_data,test_str):
     #Run SVM learn svm_learn    example1/train.dat example1/model        
     #subprocess.call("free -m",shell=True)# 
 
-    subprocess.call("svm_learn -z c -t 2 "+
+    subprocess.call("./svm_learn -z c -t 2 "+
      " -c "+str(c_cond)+" -j "+str(j_cond)+" -g "+str(g_cond)+
      " "+training_file.name+" "+model_file.name,
      shell=True,stdout=open(os.devnull, 'w'))# 
@@ -338,7 +337,45 @@ def dofoldclassification(c_cond,j_cond,g_cond,training_data,test_str):
     #print(model_file.readlines())
     
     #Training data is no longer needed as we now have a model file. Will be deleted on close.
-    sleep(1)
+    print(training_file.name)
+    print(model_file.name)
+    #sleep(1)
+    training_file.close()
+    
+    test_file = tempfile.NamedTemporaryFile(mode='w')
+    test_file.write(test_str)
+    test_file.flush()
+    
+    #print(test_file.readlines())
+    
+    predictions_file = tempfile.NamedTemporaryFile(mode='r')
+    #svm_classify example1/test.dat example1/model example1/predictions
+    subprocess.call("./svm_classify "+test_file.name+" "+model_file.name+" "+predictions_file.name,shell=True,stdout=open(os.devnull, 'w'))
+    
+    test_file.close()
+    model_file.close()#Model file no longer needed as we have predictions. 
+    #print(predictions_file.readlines())
+    return predictions_file
+
+
+
+def dofoldclassificationPOLY(c_cond,j_cond,g_cond,training_data,test_str):
+    #Make the training file. 
+    training_file = tempfile.NamedTemporaryFile(mode='w')  
+    training_file.write(training_data)
+    training_file.flush()
+    #Make the model data into this file.
+    model_file = tempfile.NamedTemporaryFile(mode='r')        
+    #Run SVM learn svm_learn    example1/train.dat example1/model        
+    #subprocess.call("free -m",shell=True)# 
+    subprocess.call("./svm_learn -z c -t 1 "+
+     " -c "+str(c_cond)+" -j "+str(j_cond)+" -g "+str(g_cond)+
+     " "+training_file.name+" "+model_file.name,
+     shell=True,stdout=open(os.devnull, 'w'))# 
+    
+    #print(model_file.readlines())
+    
+    #Training data is no longer needed as we now have a model file. Will be deleted on close.
     training_file.close()
     
     test_file = tempfile.NamedTemporaryFile(mode='w')
@@ -359,15 +396,13 @@ def dofoldclassification(c_cond,j_cond,g_cond,training_data,test_str):
 
 
 
-
 def get_feature_classificationset_list_and_input_class_name_list(file_glob,k):
     class_name_collision_check_list = []
     feature_ClassificationSet_list  = []
 
     for featurized_file_with_ID in file_glob:
          #Get class name.
-         class_name = featurized_file_with_ID.split("/")[-1].split(".")[0]
-         print(class_name)
+         class_name = featurized_file_with_ID.split(".")[0]
          feature_ClassificationSet = ClassificationSet(class_name,k)
          
          if class_name in class_name_collision_check_list:
@@ -654,7 +689,6 @@ parser.add_argument('--allways_negative_fasta' ,default=5,help='')
 args = parser.parse_args()
 print(args.file_set)
 sorted_file_glob = sorted(glob(args.file_set))
-print(sorted_file_glob)
 out_base_name = args.file_set.replace("*","")+"_"+str(int(time()))
 k = int(args.k)
 
@@ -664,7 +698,7 @@ class_name_collision_check_list = []
 feature_ClassificationSet_list  = []
 for featurized_file_with_ID in sorted_file_glob:
      #Get class name.
-     class_name = featurized_file_with_ID.split("/")[-1].split(".")[0]
+     class_name = featurized_file_with_ID.split(".")[0]
      feature_ClassificationSet = ClassificationSet(class_name,k)
      
      if class_name in class_name_collision_check_list:
@@ -782,6 +816,8 @@ for g_int in range(1,g_parts+1):
                         i = 0
                         
                         for line in open(predictions_file.name,'r'):
+                            #print("####")
+                            #There will be one floating point number for each line. 
                             calc_data[i].updateprediction(plus_minus_class.pos_set_name,float(line.strip()))
                             calc_data[i].class_value_dict.update({class_name:line.strip()})
                             

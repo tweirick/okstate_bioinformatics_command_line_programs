@@ -10,34 +10,17 @@ Output:
 arranged in alphabetical order. The output format will be output in 
 description:value format. file extenstion will be CompositePruned.vec
 ==============================================================================
-"""
-"""
-A:0.06681 C:0.00418 D:0.07098 E:0.05637 F:0.03967 G:0.10438 H:0.03758 I:0.03549 K:0.01879 L:0.07724
- M:0.02923 N:0.02923 P:0.06889 Q:0.02714 R:0.07098 S:0.08559 T:0.06472 V:0.07098 W:0.01253 Y:0.02923 
- AA:0.00000 AC:0.00000 AD:0.00837 ... YS:0.00209 
-  YT:0.00209 YV:0.00209 YW:0.00000 YY:0.00000 c_terminusA:0.00209 c_terminusC:0.00209 c_terminusD:0.00000 
-  c_terminusE:0.00418 c_terminusF:0.00000 c_terminusG:0.00209 c_terminusH:0.00418 c_terminusI:0.00418 
-  c_terminusK:0.00209 c_terminusL:0.00418 c_terminusM:0.00209 c_terminusN:0.00209 c_terminusP:0.00000 
-  c_terminusQ:0.00000 c_terminusR:0.00418 c_terminusS:0.00209 c_terminusT:0.00000 c_terminusV:0.00209 
-  c_terminusW:0.00000 c_terminusY:0.00418 middleA:0.06054 middleC:0.00209 middleD:0.06681 middleE:0.05219 
-  middleF:0.03758 middleG:0.09603 middleH:0.03340 middleI:0.03132 middleK:0.01670 middleL:0.06681 
-  middleM:0.02505 middleN:0.02714 middleP:0.06889 middleQ:0.02714 middleR:0.05846 middleS:0.07933 
-  middleT:0.06263 middleV:0.06681 middleW:0.01253 middleY:0.02505 n_terminusA:0.00418 n_terminusC:0.00000 
-  n_terminusD:0.00418 n_terminusE:0.00000 n_terminusF:0.00209 n_terminusG:0.00626 n_terminusH:0.00000 
   n_terminusI:0.00000 n_terminusK:0.00000 n_terminusL:0.00626 n_terminusM:0.00209 n_terminusN:0.00000 
   n_terminusP:0.00000 n_terminusQ:0.00000 n_terminusR:0.00835 n_terminusS:0.00418 n_terminusT:0.00209 
   n_terminusV:0.00209 n_terminusW:0.00000 n_terminusY:0.00000 a_charged_residudes_DREKH:0.25470 
   a_molecular_weight:0.67416 b_hydrophillic_and_neutral_NQSTY:0.23591 b_numb_of_aas_in_prot_seq:0.53607 
   c_basic_polar_or_positivly_charged_HKR:0.12735 d_acidic_or_negativly_charged_DE:0.12735 
-  e_aliphatic_AGILV:0.35491 f_aromatic_FWY:0.08142 g_small_DNT:0.16493 h_tiny_AGPS:0.32568 
-  i_large_FRWY:0.15240 j_hydrophobic_and_aromatic_WF:0.05219 k_hydrophobic_and_neutral_ACGILMFPWV:0.50939 
-  l_amidic_NQ:0.05637 m_cyclic_P:0.06889 n_hydroxylic_ST:0.15031 o_contains_sulfer_CM:0.03340 
-  p_hbonding_CWNQSTYKRHDE:0.50731 q_acidic_and_amide_DENQ:0.18372 r_ionizable_DEHCYKR:0.28810 
-  s_sulfer_bonding_C:0.00418 t_pI:0.37888 u_molecular_weight:0.01309 v_numb_of_aas_in_prot_seq:0.01261
-
 """
 import argparse 
-from glob import glob 
+from glob import glob
+
+DELIM = "\t"
+DEBUG = False 
 #=============================================================================
 #                               Functions
 #=============================================================================
@@ -63,14 +46,27 @@ def getargs():
                        Also a .log version will be printed containing the 
                        vectors used in the new vector.''')
 
+    parser.add_argument('--omit_seqs_not_in_all_classes',
+                       default=False,
+                       help='''
+                       If set to True will remove sequences that do not occur in each class. 
+                       ''')
+
+
     args = parser.parse_args()
-    return args.els_to_keep_file,glob(args.vec_file_glob),args.out_file_name
+    return args.els_to_keep_file,glob(args.vec_file_glob),args.out_file_name,args.omit_seqs_not_in_all_classes
 
 #=============================================================================
 #                             Main Program
 #=============================================================================
 
-vecs_to_keep,file_name_glob,out_file_name = getargs()
+vecs_to_keep,file_name_glob,out_file_name,omit_seq = getargs()
+
+#print(vecs_to_keep,file_name_glob,out_file_name)
+if DEBUG: 
+    for f_name in file_name_glob:
+        print(f_name)
+        
 
 #Get the vectors to keep if a description file has been given.
 if vecs_to_keep != None:
@@ -84,48 +80,101 @@ if vecs_to_keep != None:
     #Check for overlaps, while this will not nessisarily cause errors. It 
     #could indicate an error. 
     assert len(vecs_to_keep) == len(vecs_to_keep_list)
-    
 
+    if DEBUG: 
+        print("Keeping",len(vecs_to_keep),"Elements")
+
+ 
 #All files should be on the same dataset i.e. the same number of lines  
 out_vec_collection = []
 first_file         = True
 number_of_vecs     = 0
 
+#This will only keep track of the ids in the given files. 
+#It will contain a dictionary as its value with dicts 
+#output will be generated from these. 
+out_vec_id_dict = {}
+set_of_vecs_read = set()
+last_seq_ids = set()
+#Each file in this will contain some type of vector. 
+seq_ids_not_in_all_files = set()
 for file_name in file_name_glob:
-
-    if first_file:
-        for line in open(file_name,'r'): 
-            out_vec_collection.append(dict())
-            first_file = False
-    #print(len(out_vec_collection))
     line_cnt = 0
-    for line in open(file_name,'r'): 
-        sp_line = line.strip().split()
-        for el in sp_line:
-            el_id,el_val = el.split(":")
-            if vecs_to_keep == None or el_id in vecs_to_keep:
-                out_vec_collection[line_cnt].update( {el_id:el_val} )
-        line_cnt+=1
 
-#The symetric differece of the vec and the 
-if vecs_to_keep != None:
-    assert ( set(out_vec_collection[-1].keys()) ^ vecs_to_keep ) == set()
-#Output the new file.
+    tmp_seq_ids = set()
+
+    for line in open(file_name,'r'): 
+        
+        sp_line = line.strip().split()
+        if len(sp_line) >=2:
+            seq_id  = sp_line[0]
+            vector  = sp_line[1:] 
+            tmp_seq_ids.add(seq_id)
+            if not seq_id in out_vec_id_dict:
+                out_vec_id_dict.update( {seq_id:dict()} )
+            
+            for el in vector:
+                el_id  = "".join(el.split(":")[:-1])
+                el_val = el.split(":")[-1]
+                assert type(float(el_val)) == float
+                if vecs_to_keep == None or el_id in vecs_to_keep:
+                    #assert not el_id in out_vec_id_dict[seq_id], file_name+"\n"+line+"\n"+el_id+"\n"+
+                    set_of_vecs_read.add(el_id)
+                    out_vec_id_dict[seq_id].update( { el_id  : el_val }  )        
+            line_cnt+=1 
+    if DEBUG: 
+        print(len(out_vec_id_dict),seq_id,out_vec_id_dict[seq_id]) 
+    
+    """
+    Had a problem with not quite perfectly overlapping data sets. 
+    This is a quick fix, but maybe it could come in handy later. 
+    Will make a set of all seq ids that do not overlap. 
+    Use this to remove them from the final dict. 
+    """
+    if omit_seq:
+        if last_seq_ids == set():
+             last_seq_ids = tmp_seq_ids
+
+        sym_dif =  tmp_seq_ids ^ last_seq_ids 
+        for sd_el in sym_dif:
+            set_of_vecs_read.add( sd_el  )
+        
+        last_seq_ids = tmp_seq_ids
+
 
 output_list = []
-for vec_el in out_vec_collection:
-    tmp_list = []
-    for dict_key in sorted( vec_el.keys() ):
-        tmp_list.append( dict_key+":"+vec_el[dict_key] )
-    output_list.append(" ".join(tmp_list))
-    
+
+#Need to perserve order, so sort. If no vecs to keep given, keep all input vecs. 
+if vecs_to_keep == None:
+    sorted_el_list = sorted( list(set_of_vecs_read) )
+else:
+    sorted_el_list = sorted( vecs_to_keep )
+
+
+for seq_id in out_vec_id_dict:
+
+    if not seq_id in set_of_vecs_read:   
+        #Add the name of the sequence 
+        out_list_tmp = [seq_id]
+        #Add the vector elements, if no entry exists for a given element. Add zero.
+        for el_to_keep in sorted_el_list:
+            if el_to_keep in out_vec_id_dict[seq_id]:
+                out_list_tmp.append( el_to_keep+":"+out_vec_id_dict[seq_id][el_to_keep] )
+            else:
+                out_list_tmp.append( el_to_keep+":"+"0.0000") 
+        output_list.append( DELIM.join(out_list_tmp) )
+
+print(out_file_name)
+print("Number of files in:"+str(len(file_name_glob)))
+print("Final vec lenght: "+str(len(sorted_el_list)))
+
+out_txt = "\n".join(output_list)
 out_file = open(out_file_name+".vec","w")
-out_file.write("\n".join(output_list))
+out_file.write(out_txt)
 out_file.close()
 
-
-
-
+#log_el_list = sorted(list())
 out_file = open(out_file_name+".log","w")
-out_file.write(" ".join(list(   out_vec_collection[0].keys()   )))
+out_file.write(str(len(sorted_el_list))+" elements\n"+ DELIM.join(sorted_el_list) )
 out_file.close()
+

@@ -1,4 +1,3 @@
-
 '''
 @author: Tyler Weirick
 @date: 2013-08-25
@@ -39,10 +38,14 @@ for line in open(fasta_file,'r'):
 out_list = []
 for line in open(interpro_scan_file,'r'):
     sp_line = line.split()
-    if not sp_line[0] in sp_line and int(sp_line[2]) > min_aas :
+    #print(int(sp_line[2]),min_aas,sp_line[0])
+
+    if (not sp_line[0] in id_set) and int(sp_line[2]) > min_aas :
         out_list.append(line)
+    
 
 of = open(interpro_scan_file+".illegal_removed.tsv",'w')
 of.write("".join(out_list))
 of.close()
+
 
