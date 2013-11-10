@@ -9,10 +9,6 @@ blastclust_clusters_to_fasta.py
 import argparse
 from glob import glob
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 195e70b66f92aacab725c18f5ed113b461de606a
 parser = argparse.ArgumentParser(description=__doc__,
     formatter_class=argparse.RawDescriptionHelpFormatter)    
 
@@ -130,7 +126,6 @@ else:
     fasta_cluster_regex = args.fasta_files_used_in_cluster_by_regex
     by_presidence = args.by_presidence
     assert len(bc_c_files) == 1
-
 
 
 
