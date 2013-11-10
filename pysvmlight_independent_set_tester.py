@@ -1,8 +1,7 @@
 """
 @author: Tyler Weirick
 @date: 2013-5-20
-This script used the pysvmlight library to preforme n-fold testing.
-
+This script used the pysvmlight library to preform indpented set testing
 """
 
 from math      import sqrt
@@ -124,15 +123,9 @@ class PerformanceCalculation():
 
     def gettitle(self):
         rtrn_str = (
-        'accuracy   \t'+
-        'error      \t'+
-        'MCC        \t'+
-        'precision  \t'+
-        'sensitivity\t'+
-        'specificity')
-        
+        'accuracy\t'+'error\t'+'MCC\t'+
+        'precision\t'+'sensitivity\t'+'specificity')
         return rtrn_str
-
 
 
 #=============================================================================
@@ -159,7 +152,6 @@ def parsevectorfiletolist(file_name,label_val,vector_list=[]):
         #Count from one to account for missing first el
         for i in range(1,len(sp_line[1:])):
             vec_el = sp_line[i].split(":")
-
             #There should be at most one colon in the elment.
             assert len(vec_el) <= 2
             #Getting the last value allows for the case of no colons to 
@@ -172,7 +164,6 @@ def parsevectorfiletolist(file_name,label_val,vector_list=[]):
     #print(cnt)
     #print(len(vector_list))
     return vector_list,vect_dict
-
 
 def drange(start, stop, step):
     r = start
@@ -201,23 +192,25 @@ def getpredtype(pred,known_val,fold_fn,fold_fp,fold_tn,fold_tp):
         exit()
     return fold_fn,fold_fp,fold_tn,fold_tp
 
-
 parser = argparse.ArgumentParser(description='Do training.')
-parser.add_argument(
-            '--pos_vecs_file', 
-            type=str, 
-            help='')
 
 parser.add_argument(
-            '--neg_vecs_file_set',
-            type=str,
-            help='')
+            '--pos_test_vecs_file',
+            type=str, help='')
+parser.add_argument(
+            '--neg_test_vecs_set',
+            type=str, help='')
 
+parser.add_argument(
+            '--pos_model_vecs_file', 
+            type=str, help='')
+parser.add_argument(
+            '--neg_model_vecs_set',
+            type=str,help='')
 parser.add_argument(
            '--out_base',
             type=str,
             help='')
-
 parser.add_argument(
             '--k_folds', 
             type=int, 
@@ -234,10 +227,21 @@ neg_vecs_file_set = sorted(glob(args.neg_vecs_file_set))
 
 
 if pos_vecs_file in neg_vecs_file_set: 
-    #print(len(neg_vecs_file_set))
     neg_vecs_file_set.remove(pos_vecs_file)
-    #print(len(neg_vecs_file_set))
-    print('Removing the file"'+pos_vecs_file+'" from the negative set.')
+    print('#Removing the file"'+pos_vecs_file+'" from the negative set.')
+
+            '--pos_test_vecs_file',
+            type=str, help='')
+parser.add_argument(
+            '--neg_test_vecs_set',
+            type=str, help='')
+
+parser.add_argument(
+            '--pos_model_vecs_file',
+            type=str, help='')
+parser.add_argument(
+            '--neg_model_vecs_set',
+
 
 out_base          = args.out_base
 kernal_type       = args.kernal

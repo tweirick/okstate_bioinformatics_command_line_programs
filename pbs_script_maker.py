@@ -62,7 +62,7 @@ if py_version > "0x30200f0":
             help='''
                  Boolean accepting T or F. T if you are passing a tab 
                  delimited flat file. F for file name or regex.
-                 ''',default="")
+                 ''',default=False)
         parser.add_argument('--output_to_directory',
             help='''
                  The directory to output the qsub files to.
@@ -107,24 +107,49 @@ template_txt  = template_file.read()
 template_file.close()
 
 file_number = 0
+is_csv = False
+
+if type(is_flat_file) != bool:
+    
+    if is_flat_file.upper() == "T" or  is_flat_file.upper() == "TRUE":
+        is_flat_file = True
+    elif is_flat_file.upper() == "F" or  is_flat_file.upper() == "FALSE":
+        is_flat_file = False
+    else:
+        print("ERROR: "+str(is_flat_file)+" not recognized as boolean value.")
+
+
 
 if is_flat_file:
-    for csv_file_name in glob(file_set):
-        with open(csv_file,'r') as csvfile:
-            csv_iter = csv.reader(csvfile, delimiter=',', quotechar='"')
-            for row in csv_iter:
-                #Convert iterator to a tuple
-                #this is required for the format function
-                row_tuple = tuple(row)
-                qsub_file_name = out_dir+base_name+str(file_number)+file_extension
-                qsub_file = open(qsub_file_name,'w')
-                qsub_file.write( template_txt.format( *row_tuple  ) )
-                qsub_file.close()
-                #Make text for submission of the qsub file. These will be written 
-                #to a bash shell script for easy submission.  
-                sh_txt_list.append("qsub "+out_dir+"/"+qsub_file_name)
-                file_number+=1
-else:
+    print(is_flat_file)
+    if is_csv:
+        for csv_file_name in glob(file_set):
+            with open(csv_file,'r') as csvfile:
+                csv_iter = csv.reader(csvfile, delimiter=',', quotechar='"')
+                for row in csv_iter:
+                    #Convert iterator to a tuple
+                    #this is required for the format function
+                    row_tuple = tuple(row)
+                    qsub_file_name = out_dir+base_name+str(file_number)+file_extension
+                    qsub_file = open(qsub_file_name,'w')
+                    qsub_file.write( template_txt.format( *row_tuple  ) )
+                    qsub_file.close()
+                    #Make text for submission of the qsub file. These will be written 
+                    #to a bash shell script for easy submission.  
+                    sh_txt_list.append("qsub "+out_dir+"/"+qsub_file_name)
+                    file_number+=1
+    else:
+         for tab_file_name in glob(file_set):
+             for line in open(tab_file_name,'r'):
+                 sp_line = line.strip().split(",")
+                 qsub_file_name = out_dir+base_name+"."+str(file_number)+file_extension
+                 
+                 qsub_file = open(qsub_file_name,'w')
+                 qsub_file.write( template_txt.format( *tuple(sp_line)) )
+                 qsub_file.close()
+                 sh_txt_list.append("qsub "+qsub_file_name)
+                 file_number+=1
+else:          
     #todo: Need check for only one insert area. 
     for file_name in glob(file_set):
         
@@ -137,6 +162,7 @@ else:
         file_number+=1
 
 #Make the mass submission shell script
+print(qsub_submission_script_name)
 script_file = open(qsub_submission_script_name,"w")
 script_file.write( "\n".join(sh_txt_list) )
 script_file.close()

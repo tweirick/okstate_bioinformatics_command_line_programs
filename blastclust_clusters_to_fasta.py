@@ -3,62 +3,89 @@ blastclust_clusters_to_fasta.py
 @author: Tyler Weirick
 @created: 3/6/2013  
 @language: Python 3.2
+@tags: blastclust fasta 
 '''
-#http://casp.rnet.missouri.edu/
-#download/adam/sspro4.1/blast2.2.8/blastclust.txt
+#http://casp.rnet.missouri.edu/download/adam/sspro4.1/blast2.2.8/blastclust.txt
+
 import argparse
 from glob import glob
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 195e70b66f92aacab725c18f5ed113b461de606a
-parser = argparse.ArgumentParser(description=__doc__,
-    formatter_class=argparse.RawDescriptionHelpFormatter)    
+def getheadcomments():
+    """
+    This function will make a string from the text between the first and 
+    second ''' encountered. Its purpose is to make maintenance of the comments
+    easier by only requiring one change for the main comments. 
+    """
+    desc_list = []
+    start_and_break = "'''"
+    read_line_bool = False
+    #Get self name and read self line by line. 
+    for line in open(__file__,'r'):
+        if read_line_bool:
+            if not start_and_break in line:
+                line_minus_newline = line.replace("\n","")
+                space_list = []
+                #Add spaces to lines less than 79 chars
+                for i in range(len(line_minus_newline),80):
+                     space_list.append(" ")
+                desc_list.append(line_minus_newline+''.join(space_list)+"\n\r")
+            else:
+                break    
+        if (start_and_break in line) and read_line_bool == False:
+            read_line_bool = True
+    desc = ''.join(desc_list)
+    return desc
+
+
+
+parser = argparse.ArgumentParser(description=getheadcomments(),formatter_class=argparse.RawDescriptionHelpFormatter)    
 
 parser.add_argument('--blastclust_cluster_files',
     help='Accepts cluster files output by Blastclust.')
-
 parser.add_argument('--fasta_files_used_in_cluster_by_presidence',
-help='''The fasta file(s) used to generate the cluster. If it is 
-important to keep some sequences over others include them in the 
-following format most_important.fasta,second_most.fasta,...''' 
-,default=None)
+    help='The fasta file(s) used to generate the cluster. '+
+    'If it is important to keep some sequences over others include them in the following format '+
+     'most_important.fasta,second_most.fasta,...' ,default=None)
 
 parser.add_argument('--fasta_files_used_in_cluster_by_regex',
-help='''I there is no presidence to the fastas you can describe them 
-with a regex. Be sure to use quotes around your regex'''
-,default=None)
+    help='I there is no presidence to the fastas you can describe them with a regex.'+
+    'be sure to use quotes around your regex',default=None)
 
 parser.add_argument('--by_presidence',
                     help='T for presidence, F for ',
                     default=None)
 
-args = parser.parse_args()
-bc_c_files          = glob(args.blastclust_cluster_files)
-fasta_cluster_pres  = list(
-    str(args.fasta_files_used_in_cluster_by_presidence).split(","))
-    
-print(fasta_cluster_pres)
 
+args = parser.parse_args()
+
+bc_c_files          = glob(args.blastclust_cluster_files)
+fasta_cluster_pres  = list(str(args.fasta_files_used_in_cluster_by_presidence).split(","))
+print(fasta_cluster_pres)
+print("111111111111111")
 fasta_cluster_regex = args.fasta_files_used_in_cluster_by_regex
 
 by_presidence = args.by_presidence
 
+print("fasta_cluster_pres",fasta_cluster_pres)
+print("fasta_cluster_regex",fasta_cluster_regex)
 
-if fasta_cluster_pres == None and fasta_cluster_regex != None:
+if fasta_cluster_pres[0] == 'None' and fasta_cluster_regex != None:
     fasta_file_list = fasta_cluster_regex
-elif fasta_cluster_pres != None and fasta_cluster_regex == None:
+elif fasta_cluster_pres[0] != 'None' and fasta_cluster_regex == None:
     fasta_file_list = fasta_cluster_pres
 else:
     print("ERROR:")
     exit()
-    
+   
+print(by_presidence)
+
+ 
 if by_presidence == "T":
-    #First covert the lists of fasta file name to lists of blastclust style name: full name\nseq dicts.
-    
+
+    #First covert the lists of fasta file name to lists of blastclust style name: full name\nseq dicts.    
     fasta_file_dict_list = []
-    
+
     for fasta_file_name in fasta_file_list:
         print(fasta_file_name)
         #Get fasta data.  
@@ -125,12 +152,32 @@ if by_presidence == "T":
         file.close()
 else:
     
-    bc_c_files          = glob(args.blastclust_cluster_files)
+    bc_c_files          = args.blastclust_cluster_files
     fasta_cluster_pres  = list(str(args.fasta_files_used_in_cluster_by_presidence).split(","))
     fasta_cluster_regex = args.fasta_files_used_in_cluster_by_regex
     by_presidence = args.by_presidence
-    assert len(bc_c_files) == 1
+    
+    id_list = []
+    for line in open(bc_c_files,"r"):
+        try: 
+            id_list.append( line.split("|")[1] )
+        except:
+            print("warning ids may be wrong")
+            id_list.append( line.strip() )
+    out_txt_list = []
+    print_switch = False 
+    for line in open(fasta_cluster_regex,"r"):
+        if len(line) != 0 and line[0] == ">":
+            if line.split("|")[1] in id_list: 
+                print_switch = True 
+            else: 
+                print_switch = False
+        if print_switch:
+            out_txt_list.append(line)
+    print(bc_c_files+".faa") 
+    file = open(bc_c_files+".faa","w")
+    file.write("".join(out_txt_list))
+    file.close()
 
-
-
+    
 
