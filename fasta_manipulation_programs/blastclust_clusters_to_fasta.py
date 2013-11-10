@@ -11,35 +11,8 @@ import argparse
 from glob import glob
 
 
-def getheadcomments():
-    """
-    This function will make a string from the text between the first and 
-    second ''' encountered. Its purpose is to make maintenance of the comments
-    easier by only requiring one change for the main comments. 
-    """
-    desc_list = []
-    start_and_break = "'''"
-    read_line_bool = False
-    #Get self name and read self line by line. 
-    for line in open(__file__,'r'):
-        if read_line_bool:
-            if not start_and_break in line:
-                line_minus_newline = line.replace("\n","")
-                space_list = []
-                #Add spaces to lines less than 79 chars
-                for i in range(len(line_minus_newline),80):
-                     space_list.append(" ")
-                desc_list.append(line_minus_newline+''.join(space_list)+"\n\r")
-            else:
-                break    
-        if (start_and_break in line) and read_line_bool == False:
-            read_line_bool = True
-    desc = ''.join(desc_list)
-    return desc
-
-
-
-parser = argparse.ArgumentParser(description=getheadcomments(),formatter_class=argparse.RawDescriptionHelpFormatter)    
+parser = argparse.ArgumentParser(description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter)    
 
 parser.add_argument('--blastclust_cluster_files',
     help='Accepts cluster files output by Blastclust.')
