@@ -3,13 +3,11 @@ blastclust_clusters_to_fasta.py
 @author: Tyler Weirick
 @created: 3/6/2013  
 @language: Python 3.2
-@tags: blastclust fasta 
 '''
-#http://casp.rnet.missouri.edu/download/adam/sspro4.1/blast2.2.8/blastclust.txt
-
+#http://casp.rnet.missouri.edu/
+#download/adam/sspro4.1/blast2.2.8/blastclust.txt
 import argparse
 from glob import glob
-
 
 parser = argparse.ArgumentParser(description=__doc__,
     formatter_class=argparse.RawDescriptionHelpFormatter)    
@@ -18,6 +16,7 @@ parser.add_argument('--blastclust_cluster_files',
     help='Accepts cluster files output by Blastclust.')
 
 parser.add_argument('--fasta_files_used_in_cluster_by_presidence',
+<<<<<<< HEAD
     help='The fasta file(s) used to generate the cluster. '+
     'If it is important to keep some sequences over others include them in the following format '+
      'most_important.fasta,second_most.fasta,...' ,default="")
@@ -25,19 +24,36 @@ parser.add_argument('--fasta_files_used_in_cluster_by_presidence',
 parser.add_argument('--fasta_files_used_in_cluster_by_regex',
     help='I there is no presidence to the fastas you can describe them with a regex.'+
     'be sure to use quotes around your regex',default="")
+=======
+help='''The fasta file(s) used to generate the cluster. If it is 
+important to keep some sequences over others include them in the 
+following format most_important.fasta,second_most.fasta,...''' 
+,default=None)
+
+parser.add_argument('--fasta_files_used_in_cluster_by_regex',
+help='''I there is no presidence to the fastas you can describe them 
+with a regex. Be sure to use quotes around your regex'''
+,default=None)
+>>>>>>> fcae0c401ba7764bbda2a0ad27a0c564e75a3586
 
 parser.add_argument('--by_presidence',
                     help='T for presidence, F for ',
                     default=None)
 
-
 args = parser.parse_args()
-
 bc_c_files          = glob(args.blastclust_cluster_files)
-fasta_cluster_pres  = list(str(args.fasta_files_used_in_cluster_by_presidence).split(","))
+fasta_cluster_pres  = list(
+    str(args.fasta_files_used_in_cluster_by_presidence).split(","))
+    
 print(fasta_cluster_pres)
+<<<<<<< HEAD
 fasta_cluster_regex = glob(args.fasta_files_used_in_cluster_by_regex)
 print(fasta_cluster_pres)
+=======
+
+fasta_cluster_regex = args.fasta_files_used_in_cluster_by_regex
+
+>>>>>>> fcae0c401ba7764bbda2a0ad27a0c564e75a3586
 by_presidence = args.by_presidence
 print(by_presidence)
 
@@ -125,7 +141,6 @@ else:
     fasta_cluster_regex = args.fasta_files_used_in_cluster_by_regex
     by_presidence = args.by_presidence
     assert len(bc_c_files) == 1
-
 
 
 
