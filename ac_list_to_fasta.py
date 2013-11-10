@@ -3,7 +3,8 @@
 @date:   3/13/2013
 This program accepts a flat file containg some type of fasta ids
 such as an AC number and prints fasta from a fasta file which contain 
-one of the ids. Prints matches to standard output.  
+one of the ids. Prints matches to standard output. If more than one entry 
+per line exists the first entry will be used. 
 '''
 #The hexversion is a 32-bit number with the following layout:
 #Bits (big endian order)        Meaning
@@ -19,7 +20,7 @@ from glob import glob
 py_version = hex(hexversion)
 
 #Get the top comments.
-desc=open(__file__).read().split("'''")[1]
+desc=__doc__
 
 if py_version > "0x30200f0":
     import argparse
@@ -43,7 +44,7 @@ fasta_file,flat_file = getargs()
 
 ac_set = set()
 for line in open(flat_file,'r'):
-    ac = line.strip()
+    ac = line.strip().split()[0]
     if not ac in ac_set:
         ac_set.add(ac)
 
