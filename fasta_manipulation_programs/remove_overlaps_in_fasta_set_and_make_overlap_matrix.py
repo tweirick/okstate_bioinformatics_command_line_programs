@@ -51,28 +51,29 @@ for file_name in file_name_glob:
     
         
 #Now we should have a dictionary of the input fastas 
-    
-overlaps_matrix_list_cols = [",".join("x",sorted(dict_of_fasta_dicts.keys()))]
+print(sorted(dict_of_fasta_dicts.keys() ))
+overlaps_matrix_list_cols = [ ",".join( ["x"] + sorted(dict_of_fasta_dicts.keys() ) )   ]
 
 for fasta_file_name1 in sorted(dict_of_fasta_dicts.keys()):     
     
     
     file_data1 = set(dict_of_fasta_dicts[fasta_file_name1])
     overlaps_matrix_list_rows = [fasta_file_name1]
-    for fasta_file_name2 in dict_of_fasta_dicts:
+    for fasta_file_name2 in sorted(dict_of_fasta_dicts.keys()):
         
         if fasta_file_name1 != fasta_file_name2:
             file_data2 = set(dict_of_fasta_dicts[fasta_file_name2])
             #Find intersection to discover overlaps.
             overlaps = file_data1 & file_data2
-            overlaps_matrix_list_rows.append(len(overlaps))
+            overlaps_matrix_list_rows.append(str(len(overlaps)))
             #Find difference to get a unique fasta file. 
             file_data1 = file_data1 - file_data2
         else:
             overlaps_matrix_list_rows.append("-")
-        overlaps_matrix_list_cols.append(",".join(overlaps_matrix_list_rows))
+
+    overlaps_matrix_list_cols.append( ",".join(overlaps_matrix_list_rows) )
     
-    print("\n".join(overlaps_matrix_list_cols))
+    #print("\n".join(overlaps_matrix_list_cols))
     
     #output to file.
     out_list = []
@@ -82,15 +83,11 @@ for fasta_file_name1 in sorted(dict_of_fasta_dicts.keys()):
         #fasta_seq 
         out_list.append(nonr_seq)
     
-    outfile = open(fasta_file_name1+"nooverlap.faa",'w')
+    outfile = open(fasta_file_name1+".nooverlap.faa",'w')
     outfile.write("\n".join(out_list))
     outfile.close()
     
     
+print("\n".join(overlaps_matrix_list_cols))    
     
-    
-    
-    
-    
-    
-    
+ 

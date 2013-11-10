@@ -5,15 +5,16 @@ fasta_intersection_or_complement.py
 @language:Python 3.2
 @tags: fasta difference intersection set Relative Complement Symmetric Difference
                         
-Does various set operations, will print the output to screen. <br/>
-I = intersection i.e. The things that are only in both <br/>
-R = Relative Complement of B i.e. the things that are in A that are not in B.<br/>
-S = Symmetric Difference - the things that  unique to each.<br/>
-U = Union - Everything that is in A and everything that is in B.<br/>
+Does various set operations, will print the output to screen. 
+I = intersection i.e. The things that are only in both.
+R = Relative Complement of B i.e. the things that are in A that are not in B.
+S = Symmetric Difference - the things that  unique to each.
+U = Union - Everything that is in A and everything that is in B.
 TODO - Need to add error checking. 
 '''
 import sys
 from optparse import OptionParser
+import argparse
 #This is the file of sequences you want to remove from file B or 
 #Want to use to combine the sequences in common 
 
@@ -22,47 +23,26 @@ def getargs(ver='%prog 0.0'):
     will use the first name and append out on the end of the file
     if no out-file name is given"""
     
-    desc_list = []
-    start_and_break = "'''"
-    read_line_bool = False
-    for line in open(__file__,'r'):
-        if read_line_bool:
-            if not start_and_break in line:
-                desc_list.append(line.replace("\n","")+"\n")
-            else:
-                break    
-        if (start_and_break in line) and read_line_bool == False:
-            read_line_bool = True
-    desc = ''.join(desc_list)
-    
-    troubleShoot = False
-    parser = OptionParser(version=ver,description=desc)
-    
-    #@todo: OptionParser is depreciated in Python 3.2. 
-    #Need to move to the new style of parser. 
+    parser = argparse.ArgumentParser(description=__doc__,
+                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_option("-a", "--fasta_a_name", 
-                      dest="fasta_a_name", 
-                      default="",
-                      help = "REQUIRED: The name of the fasta file a.")
+    parser.add_argument("--fasta_a_name", 
+                      required=True,
+                      help = "The name of the fasta file a.")
 
-    parser.add_option("-b", "--fasta_b_name", 
-                      dest="fasta_b_name", 
-                      default="",
-                      help = "REQUIRED: The name of the fasta file a.")
+    parser.add_argument("--fasta_b_name", 
+                      required=True,
+                      help = "The name of the fasta file b.")
     
-    parser.add_option("-o", "--set_operation", 
-                      dest="set_operation", 
+    parser.add_argument("--set_operation", 
                       default="U",
-                      help = "REQUIRED: The operation you want to do.")
+                      help = "The operation to preform.")
     
-    (options, args) = parser.parse_args()
-    if(troubleShoot):print(options);print(args)
-    
-    fasta_a_name  = options.fasta_a_name
-    fasta_b_name  = options.fasta_b_name
-    set_operation  = options.set_operation
-    
+    args = parser.parse_args() 
+    fasta_a_name  = args.fasta_a_name
+    fasta_b_name  = args.fasta_b_name
+    set_operation = args.set_operation
+
     return fasta_a_name,fasta_b_name,set_operation
 
 
@@ -160,7 +140,7 @@ def add_names_to_output_set(fasta_dict_a,fasta_dict_b,output_set):
             out_fasta_list.append("\n"+fasta_contig_name+"\n")        
             out_fasta_list.append(fasta_data)
 
-    return ''.join(out_fasta_list)
+    return ''.join(out_fasta_list).strip()+"\n"
 
 
 

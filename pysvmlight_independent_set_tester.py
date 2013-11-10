@@ -63,26 +63,18 @@ class PerformanceCalculation():
             return x
 
     def getMCC(self):
-        #numerator = (true_pos*true_neg)-(false_pos*false_neg)
-        #denominator = (true_pos+false_pos)*(true_pos+false_neg)*(true_neg+false_pos)*(true_neg+false_neg) 
         numerator   = float(self.TP*self.TN-self.FP*self.FN)
-
         a=self.ifzeronone(self.TP+self.FP)
         b=self.ifzeronone(self.TP+self.FN)
         c=self.ifzeronone(self.TN+self.FP)
         d=self.ifzeronone(self.TN+self.FN)
-
         denominator = float(sqrt(a*b*c*d))
-
         if denominator == 0:
             return 0
         else:
             return numerator/denominator
     
     def geterror(self):
-        #({"Error": 100*numerator/denominator })  numerator   = 100*TP
-        #numerator   = (false_pos+false_neg)
-        #denominator = (true_pos+true_neg+false_pos+false_neg)
         numerator   = float(100*self.FP+self.FN)
         denominator = float(self.TP+self.TN+self.FP+self.FN)
         if denominator == 0:
@@ -200,7 +192,6 @@ parser.add_argument(
 parser.add_argument(
             '--neg_test_vecs_set',
             type=str, help='')
-
 parser.add_argument(
             '--pos_model_vecs_file', 
             type=str, help='')
@@ -209,83 +200,58 @@ parser.add_argument(
             type=str,help='')
 parser.add_argument(
            '--out_base',
-            type=str,
-            help='')
-parser.add_argument(
-            '--k_folds', 
-            type=int, 
-            default=str,
-            help='')
-
+            type=str,help='')
 parser.add_argument(
             '--kernal',type=str,default="RBF",
              help='')
+parser.add_argument(
+            '--g',type=str,default="RBF",
+             help='')
+parser.add_argument(
+            '--c',type=str,default="RBF",
+             help='')
+parser.add_argument(
+            '--j',type=str,default="RBF",
+             help='')
 
 args = parser.parse_args()
-pos_vecs_file     = args.pos_vecs_file
-neg_vecs_file_set = sorted(glob(args.neg_vecs_file_set))
-
-
-if pos_vecs_file in neg_vecs_file_set: 
-    neg_vecs_file_set.remove(pos_vecs_file)
-    print('#Removing the file"'+pos_vecs_file+'" from the negative set.')
-
-            '--pos_test_vecs_file',
-            type=str, help='')
-parser.add_argument(
-            '--neg_test_vecs_set',
-            type=str, help='')
-
-parser.add_argument(
-            '--pos_model_vecs_file',
-            type=str, help='')
-parser.add_argument(
-            '--neg_model_vecs_set',
-
-
+pos_model_vecs_file     = args.pos_model_vecs_file
+neg_model_vecs_set = sorted(glob(args.neg_model_vecs_set))
+pos_test_vecs_file     = args.pos_test_vecs_file
+neg_test_vecs_set = sorted(glob(args.neg_test_vecs_set))
 out_base          = args.out_base
 kernal_type       = args.kernal
 k_folds           = args.k_folds
 
-#Make positive folds.
-pos_vecs_list,pos_vec_dict = parsevectorfiletolist(pos_vecs_file,1)
-kfold_pos_vecs_list = splitlistequally(pos_vecs_list, k_folds)
+gamma_iter = args.g
+j_iter     = args.j 
+c_iter     = args.c
 
-#Make negative folds.
-neg_vecs_list_kfold_list = [[] for i in range( k_folds)]
+#Remove the positive file and warn if taken by regex. 
+if pos_test_vecs_file in neg_test_vecs_set: 
+    neg_test_vecs_set.remove(pos_test_vecs_file)
+    print('#Removing the file"'+pos_test_vecs_file+'" from the negative set.')
+
+if pos_model_vecs_file in neg_model_vecs_set: 
+    neg_model_vecs_set.remove(pos_model_vecs_file)
+    print('#Removing the file"'+pos_model_vecs_file+'" from the negative set.')
+
+#Get positive model vecs.
+model_vecs_list,tmp_dict = parsevectorfiletolist(pos_model_vecs_file,1)
+#Get negative model vecs. 
+for file_name in neg_model_vecs_set:
+    tmp_vecs_list,tmp_dict = parsevectorfiletolist(file_name,-1)
+    model_vecs_list+=tmp_vecs_list
+
+#Get positive test vecs.
+test_vecs_list,test_vec_dict = parsevectorfiletolist(pos_test_vecs_file,1)
+#Get negative test vecs.
+total_neg_test_vecs_set_list = []
 neg_vec_dict = dict()
-for file_name in neg_vecs_file_set:
-    #print(file_name)
-    neg_vecs_list = []
-
-    neg_vecs_list,neg_tmp_dict = parsevectorfiletolist(file_name,-1)
-    neg_vec_dict.update(neg_tmp_dict)
-
-    #print("len neg vec",len(neg_vecs_list),k_folds)
-    #print(neg_vecs_list[0])
-    tmp_folds = splitlistequally(neg_vecs_list, k_folds)   
- 
-    assert len(tmp_folds) == k_folds, tmp_folds[-1]
-    for fold_i in range(len(tmp_folds)):
-        neg_vecs_list_kfold_list[fold_i]+=tmp_folds[fold_i]
-        
-#Add combine postive and negative folds. 
-main_fold_list = [[] for i in range( k_folds)]
-for i in range(k_folds):
-    main_fold_list[i] = kfold_pos_vecs_list[i] + neg_vecs_list_kfold_list[i] 
-    
-
-pos_vec_dict.update(neg_vec_dict)
-main_hash_dict = pos_vec_dict
-
-def maketrainandmodelfold(train_fold_i,k_folds,main_fold_list):
-    model_list,test_list = [] , []
-    for fold_i in range(k_folds):
-        if fold_i == train_fold_i:
-            test_list+=main_fold_list[fold_i]
-        else:
-            model_list+=main_fold_list[fold_i]
-    return model_list,test_list
+for file_name in neg_model_vecs_set:
+    tmp_vecs_list,neg_tmp_dict = parsevectorfiletolist(file_name,-1)
+    total_model_neg_vecs_list+=tmp_vecs_list
+    test_vec_dict.update(neg_tmp_dict)
 
 
 best_stats = None
@@ -295,86 +261,54 @@ elif "POLY" == kernal_type or  "polynomial" == kernal_type:
     print("Comming soon.")
 elif "RBF" == kernal_type or  "radial" == kernal_type:
 
-    if True:  
-        gamma_iter = drange(1.0,500.0,25.0)
-        j_iter     = drange(1.0,15.0,1.5)
-        c_iter     = drange(1.0,800.0,30.0)
-    else: 
-        print("to do, add file input.")
-        gamma_iter = []
-        j_iter     = []
-        c_iter     = []
+    gamma_iter = 25.0
+    j_iter     = 1.5  
+    c_iter     = 30.0 
 
-    pred_list = []
-    training_history = []
-    for g in gamma_iter:
-        for j in j_iter:
-            for c in c_iter:
-                #For overall stats
-                total_fn,total_fp,total_tn,total_tp = 0,0,0,0
-                #A list of all sequences considered and the values for their pred. 
-                pred_results_list = []
-                fold_stats = []
-                for fold_i in range(k_folds):
-                    #For fold specific stats
-                    f_fn,f_fp,f_tn,f_tp = 0,0,0,0
- 
-                    #Get the training and testing sets. 
-                    model_list,test_list = maketrainandmodelfold(
-                    fold_i,k_folds,main_fold_list)
-                      
-                    #Make a model.
-                    fold_model = svmlight.learn(
-                        model_list,
-                        type='classification',kernel='rbf',
-                        C=c,rbf_gamma=g,costratio=j)
+    #A list of all sequences considered and the values for their pred. 
+    pred_results_list = []
 
-                    #Get predicitons from test data. 
-                    for vector_to_pred in test_list:
-                        true_value = vector_to_pred[0] 
-                        raw_vector = vector_to_pred[1]
-                        seq_id     = main_hash_dict[vector_to_pred[2]]
-                        pred_list = svmlight.classify(
-                            fold_model,
-                            [(0,raw_vector)],
-                        )
-                        pred = pred_list[0]
-                        #Interpret the value from the prediction.
-                        f_fn,f_fp,f_tn,f_tp = getpredtype(pred,true_value,f_fn,f_fp,f_tn,f_tp)  
-                        pred_results_list.append(seq_id+"\t"+str(true_value)+"\t"+str(pred))                    
-                    
-                    #Calculate fold stats. 
-                    pref_calc = PerformanceCalculation(f_fn,f_fp,f_tn,f_tp)
-                    pref_calc.run_params = "fold: "+str(fold_i)+"\tg: "+str(g)+"\tj:"+str(j)+"\tc: "+str(c)
-                    #fold_stats.append( pref_calc.getperformance() )
-                    print(pref_calc.getperformance())         
+    #For fold specific stats
+    f_fn,f_fp,f_tn,f_tp = 0,0,0,0
+    #Get the training and testing sets. 
+    model_list,test_list = maketrainandmodelfold(
+    fold_i,k_folds,main_fold_list)
+    #Make a model.
+    svm_model = svmlight.learn(
+        model_list,
+        type='classification',kernel='rbf',
+        C=c,rbf_gamma=g,costratio=j)
 
-                total_fn+=f_fn 
-                total_fp+=f_fp
-                total_tn+=f_tn
-                total_tp+=f_tp
-                #Calcualte overall stats. 
-                overall_stats = PerformanceCalculation(total_fn,total_fp,total_tn,total_tp)
-                overall_stats.run_params = "overall: "+str(fold_i)+"\tg: "+str(g)+"\tj:"+str(j)+"\tc: "+str(c)
-                #Check to see if best. 
-                if best_stats == None or overall_stats.getMCC() > best_stats.getMCC(): 
-                    best_stats =  overall_stats
-                    best_pred_results_list = pred_results_list   
-                    
-                    of = open(out_base+".best-stats.txt",'w')
-                    of.write( best_stats.getperformance() )
-                    of.close()
+    #Get predicitons from test data. 
+    for vector_to_pred in test_list:
+        true_value = vector_to_pred[0] 
+        raw_vector = vector_to_pred[1]
+        seq_id     = main_hash_dict[vector_to_pred[2]]
+        pred_list = svmlight.classify(
+            svm_model,
+            [(0,raw_vector)],
+        )
+        pred = pred_list[0]
 
-                    of = open(out_base+".preds.txt",'w')
-                    of.write("\n".join(best_pred_results_list))
-                    of.close()
- 
-                print( overall_stats.getperformance()  )            
+        #Interpret the value from the prediction.
+        f_fn,f_fp,f_tn,f_tp = getpredtype(pred,true_value,f_fn,f_fp,f_tn,f_tp)  
+        pred_results_list.append(seq_id+"\t"+str(true_value)+"\t"+str(pred))                    
+    
+    #Calculate fold stats. 
+    pref_calc = PerformanceCalculation(f_fn,f_fp,f_tn,f_tp)
+    pref_calc.run_params = "fold: "+str(fold_i)+"\tg: "+str(g)+"\tj:"+str(j)+"\tc: "+str(c)
             
+    of = open(out_base+".stats.txt",'w')
+    of.write( best_stats.getperformance() )
+    of.close()
+    of = open(out_base+".preds.txt",'w')
+    of.write("\n".join(best_pred_results_list))
+    of.close()
 
 elif "SIG" == kernal_type or  "sigmoid" == kernal_type:
     print("Comming soon.")
 else: 
     print("ERROR kernal type not recognized.")
+
 
 
