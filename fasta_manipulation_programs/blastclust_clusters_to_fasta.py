@@ -3,65 +3,40 @@ blastclust_clusters_to_fasta.py
 @author: Tyler Weirick
 @created: 3/6/2013  
 @language: Python 3.2
-@tags: blastclust fasta 
 '''
-#http://casp.rnet.missouri.edu/download/adam/sspro4.1/blast2.2.8/blastclust.txt
-
+#http://casp.rnet.missouri.edu/
+#download/adam/sspro4.1/blast2.2.8/blastclust.txt
 import argparse
 from glob import glob
 
-
-def getheadcomments():
-    """
-    This function will make a string from the text between the first and 
-    second ''' encountered. Its purpose is to make maintenance of the comments
-    easier by only requiring one change for the main comments. 
-    """
-    desc_list = []
-    start_and_break = "'''"
-    read_line_bool = False
-    #Get self name and read self line by line. 
-    for line in open(__file__,'r'):
-        if read_line_bool:
-            if not start_and_break in line:
-                line_minus_newline = line.replace("\n","")
-                space_list = []
-                #Add spaces to lines less than 79 chars
-                for i in range(len(line_minus_newline),80):
-                     space_list.append(" ")
-                desc_list.append(line_minus_newline+''.join(space_list)+"\n\r")
-            else:
-                break    
-        if (start_and_break in line) and read_line_bool == False:
-            read_line_bool = True
-    desc = ''.join(desc_list)
-    return desc
-
-
-
-parser = argparse.ArgumentParser(description=getheadcomments(),formatter_class=argparse.RawDescriptionHelpFormatter)    
+parser = argparse.ArgumentParser(description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter)    
 
 parser.add_argument('--blastclust_cluster_files',
     help='Accepts cluster files output by Blastclust.')
+
 parser.add_argument('--fasta_files_used_in_cluster_by_presidence',
-    help='The fasta file(s) used to generate the cluster. '+
-    'If it is important to keep some sequences over others include them in the following format '+
-     'most_important.fasta,second_most.fasta,...' ,default=None)
+help='''The fasta file(s) used to generate the cluster. If it is 
+important to keep some sequences over others include them in the 
+following format most_important.fasta,second_most.fasta,...''' 
+,default=None)
 
 parser.add_argument('--fasta_files_used_in_cluster_by_regex',
-    help='I there is no presidence to the fastas you can describe them with a regex.'+
-    'be sure to use quotes around your regex',default=None)
+help='''I there is no presidence to the fastas you can describe them 
+with a regex. Be sure to use quotes around your regex'''
+,default=None)
 
 parser.add_argument('--by_presidence',
                     help='T for presidence, F for ',
                     default=None)
 
-
 args = parser.parse_args()
-
 bc_c_files          = glob(args.blastclust_cluster_files)
-fasta_cluster_pres  = list(str(args.fasta_files_used_in_cluster_by_presidence).split(","))
+fasta_cluster_pres  = list(
+    str(args.fasta_files_used_in_cluster_by_presidence).split(","))
+    
 print(fasta_cluster_pres)
+
 fasta_cluster_regex = args.fasta_files_used_in_cluster_by_regex
 
 by_presidence = args.by_presidence
