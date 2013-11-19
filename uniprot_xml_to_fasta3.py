@@ -1,3 +1,6 @@
+'''
+Docs description.
+'''
 from glob import glob 
 #import sys, argparse
 from xml.etree import ElementTree as ET
