@@ -46,4 +46,4 @@ for file_name in file_glob:
 
 for el in sorted( stat_dict.keys() ): 
     print(el+":",stat_dict[el]/total_seqs,end="\t")
-
+print()
