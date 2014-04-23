@@ -9,24 +9,22 @@ import argparse
 
 def getargs(ver='%prog 0.0'):
 
-    parser = argparse.ArgumentParser(description='Take a blastclust cluster '+
-             'file as input and remove all clusters from fasta file set.')    
+    parser = argparse.ArgumentParser(description=__doc__)    
     parser.add_argument('--file_set',
-                        required=True, 
-                        help='')
+                        required = True, 
+                        help='A set of fasta files.')
     
     parser.add_argument('--file_suffix', 
-                        required=False,
+                        required = False,
                         default=".pruneBJXZUO.fasta",
-                        help='')
+                        help='File suffix')
     
     parser.add_argument('--remove_over_x_percent', 
-                        required=False,
-                        default=0.0,
-                        help='Enter a percent as a decimal 100% = 1.0 etc.')
+                        required = False,
+                        default = 0.0,
+                        help='Enter a percent as a decimal 100 percent as 1.0 etc.')
 
-    args = parser.parse_args()
-    
+    args = parser.parse_args() 
     return glob(args.file_set),args.file_suffix,args.remove_over_x_percent
 
 
