@@ -178,21 +178,3 @@ for psiblast_name in psiblast_glob:
     out_file.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

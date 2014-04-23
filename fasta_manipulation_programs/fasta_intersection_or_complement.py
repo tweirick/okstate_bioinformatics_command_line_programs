@@ -116,7 +116,7 @@ def dosetoperation(fasta_dict_A,fasta_dict_B,set_operation):
         out_set = fasta_set_a.symmetric_difference(fasta_set_b)
     elif set_operation == "U":
         # U = Union
-        out_set = fasta_set_a.union(fasta_set_b)
+        out_set = fasta_set_a | fasta_set_b
     else:
         print("Set Operation selector char not found.")
         
