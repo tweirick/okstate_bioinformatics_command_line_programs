@@ -12,7 +12,11 @@ def getargs(ver='%prog 0.0'):
                         help='')
     
     parser.add_argument('--file_suffix', 
+<<<<<<< HEAD
                         default=".pruneBJXZUO.fasta",
+=======
+                        default=".pruneBJXZU.fasta",
+>>>>>>> 9d24f4e3a98a202cd5751d0d0ee880d46233760b
                         help='')
     
     parser.add_argument('--remove_over_x_percent', 
@@ -96,14 +100,23 @@ for file_name in file_set:
 
     out_file = open(file_name+file_suffix,'w')
     out_file.write('\n'.join(out_list))
+<<<<<<< HEAD
     out_file.close()
     
     out_file = open(file_name+file_suffix+".discard",'w')
     out_file.write('\n'.join(discard_list))
+=======
+>>>>>>> 9d24f4e3a98a202cd5751d0d0ee880d46233760b
     out_file.close()
 
     
+<<<<<<< HEAD
 
 
 
 
+=======
+    out_file = open(file_name+file_suffix+".discard",'w')
+    out_file.write('\n'.join(discard_list))
+    out_file.close()
+>>>>>>> 9d24f4e3a98a202cd5751d0d0ee880d46233760b
