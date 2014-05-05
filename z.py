@@ -1,0 +1,11 @@
+x= '''KSAPTDGRKRYSTLTSALSIVSYFDIDRTMSPVLTSNKLLNTLPAIVRSKTKTNVLSIKSARGTTVTIVLRTLPWVRIPLQSTSKYRAGSASA'''
+#x="PSTSYRSVFDGMSYDMSKGFVGRTLAWALSRPLVARRNLYRPLPGDSKTASKTLFNLTPLSK"
+c = {}
+for e in x:
+    if e in c: 
+        c[e]+=1
+    else:  
+        c[e]=1
+
+for e in sorted(c,key=c.get):
+    print(e,c[e]/float(len(x)))
