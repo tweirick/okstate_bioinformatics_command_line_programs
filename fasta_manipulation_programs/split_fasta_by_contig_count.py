@@ -5,6 +5,7 @@ possible to handle very large files.
 '''
 import sys
 
+#@TODO: add command line input options
 #Get the head comments.
 #parser = argparse.ArgumentParser(description=desc,formatter_class=argparse.RawDescriptionHelpFormatter)
 #parser.add_argument('--psiblast_file_set',help='''Accepts single files or regexs''')
